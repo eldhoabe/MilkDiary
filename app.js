@@ -1,0 +1,276 @@
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "milkJournal.entries";
+
+  // ---------- storage ----------
+
+  function loadEntries() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveEntries(entries) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  }
+
+  function upsertEntry(dateKey, period, liters) {
+    var entries = loadEntries();
+    var existing = entries.find(function (e) {
+      return e.date === dateKey && e.period === period;
+    });
+    if (existing) {
+      existing.liters = liters;
+      existing.updatedAt = Date.now();
+    } else {
+      entries.push({ date: dateKey, period: period, liters: liters, updatedAt: Date.now() });
+    }
+    saveEntries(entries);
+    return entries;
+  }
+
+  function deleteEntry(dateKey, period) {
+    var entries = loadEntries().filter(function (e) {
+      return !(e.date === dateKey && e.period === period);
+    });
+    saveEntries(entries);
+    return entries;
+  }
+
+  // ---------- date / period helpers ----------
+
+  var PERIOD_ORDER = ["Morning", "Afternoon", "Evening"];
+
+  function pad2(n) {
+    return n < 10 ? "0" + n : "" + n;
+  }
+
+  function dateKey(d) {
+    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+  }
+
+  function displayDate(dKey) {
+    var parts = dKey.split("-");
+    return parts[2] + "-" + parts[1] + "-" + parts[0];
+  }
+
+  function currentPeriod(d) {
+    var hour = d.getHours();
+    if (hour < 12) return "Morning";
+    if (hour < 17) return "Afternoon";
+    return "Evening";
+  }
+
+  function formatLiters(n) {
+    var rounded = Math.round(n * 100) / 100;
+    return (rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(2).replace(/0$/, "")) + "L";
+  }
+
+  // ---------- toast ----------
+
+  var toastEl = document.getElementById("toast");
+  var toastTimer = null;
+
+  function showToast(message) {
+    toastEl.textContent = message;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      toastEl.classList.remove("show");
+    }, 1800);
+  }
+
+  // ---------- view switching ----------
+
+  var views = {
+    home: document.getElementById("view-home"),
+    history: document.getElementById("view-history"),
+    bill: document.getElementById("view-bill")
+  };
+  var tabButtons = document.querySelectorAll(".tab-btn");
+
+  function showView(name) {
+    Object.keys(views).forEach(function (key) {
+      views[key].classList.toggle("active", key === name);
+    });
+    tabButtons.forEach(function (btn) {
+      btn.classList.toggle("active", btn.dataset.view === name);
+    });
+    if (name === "history") renderHistory();
+    if (name === "home") renderHome();
+  }
+
+  tabButtons.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      showView(btn.dataset.view);
+    });
+  });
+
+  // ---------- home view ----------
+
+  var dateLabelEl = document.getElementById("date-label");
+  var todayTotalEl = document.getElementById("today-total");
+  var todayEntriesEl = document.getElementById("today-entries");
+  var qtyButtons = document.querySelectorAll(".qty-btn");
+
+  function renderHome() {
+    var now = new Date();
+    var today = dateKey(now);
+    var period = currentPeriod(now);
+
+    dateLabelEl.textContent = displayDate(today) + " - " + period;
+
+    var entries = loadEntries().filter(function (e) {
+      return e.date === today;
+    });
+
+    var total = entries.reduce(function (sum, e) {
+      return sum + e.liters;
+    }, 0);
+
+    todayTotalEl.innerHTML = total > 0
+      ? "Today's total: <strong>" + formatLiters(total) + "</strong>"
+      : "";
+
+    var byPeriod = {};
+    entries.forEach(function (e) {
+      byPeriod[e.period] = e.liters;
+    });
+
+    todayEntriesEl.innerHTML = PERIOD_ORDER
+      .filter(function (p) { return byPeriod[p] !== undefined; })
+      .map(function (p) {
+        return '<div class="today-entry-row"><span class="period">' + p +
+          '</span><span class="liters">' + formatLiters(byPeriod[p]) + "</span></div>";
+      })
+      .join("");
+  }
+
+  qtyButtons.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var liters = parseFloat(btn.dataset.liters);
+      var label = btn.dataset.label;
+      var now = new Date();
+      var today = dateKey(now);
+      var period = currentPeriod(now);
+
+      upsertEntry(today, period, liters);
+      showToast("Saved: " + label.replace("Liter", "L").replace(" ", "") + " - " + period);
+      renderHome();
+    });
+  });
+
+  // ---------- history view ----------
+
+  var historyListEl = document.getElementById("history-list");
+
+  function renderHistory() {
+    var entries = loadEntries();
+
+    if (entries.length === 0) {
+      historyListEl.innerHTML = '<div class="empty-state">No entries yet. Log some milk from the Home tab.</div>';
+      return;
+    }
+
+    var byDate = {};
+    entries.forEach(function (e) {
+      if (!byDate[e.date]) byDate[e.date] = [];
+      byDate[e.date].push(e);
+    });
+
+    var dates = Object.keys(byDate).sort(function (a, b) {
+      return a < b ? 1 : -1;
+    });
+
+    historyListEl.innerHTML = dates.map(function (d) {
+      var dayEntries = byDate[d].slice().sort(function (a, b) {
+        return PERIOD_ORDER.indexOf(a.period) - PERIOD_ORDER.indexOf(b.period);
+      });
+      var dayTotal = dayEntries.reduce(function (sum, e) { return sum + e.liters; }, 0);
+
+      var rows = dayEntries.map(function (e) {
+        return '<div class="history-entry">' +
+          '<div class="history-entry-info">' +
+          '<span class="history-entry-period">' + e.period + '</span>' +
+          '<span class="history-entry-liters">' + formatLiters(e.liters) + '</span>' +
+          '</div>' +
+          '<button type="button" class="delete-btn" data-date="' + e.date + '" data-period="' + e.period + '" aria-label="Delete entry">✕</button>' +
+          '</div>';
+      }).join("");
+
+      return '<div class="history-group">' +
+        '<div class="history-group-header">' +
+        '<span class="history-group-date">' + displayDate(d) + '</span>' +
+        '<span class="history-group-total">' + formatLiters(dayTotal) + '</span>' +
+        '</div>' + rows + '</div>';
+    }).join("");
+  }
+
+  historyListEl.addEventListener("click", function (evt) {
+    var btn = evt.target.closest(".delete-btn");
+    if (!btn) return;
+    deleteEntry(btn.dataset.date, btn.dataset.period);
+    renderHistory();
+  });
+
+  // ---------- bill view ----------
+
+  var billMonthEl = document.getElementById("bill-month");
+  var billPriceEl = document.getElementById("bill-price");
+  var billResultEl = document.getElementById("bill-result");
+  var calcBillBtn = document.getElementById("calc-bill-btn");
+
+  function initBillMonth() {
+    var now = new Date();
+    billMonthEl.value = now.getFullYear() + "-" + pad2(now.getMonth() + 1);
+  }
+
+  function monthLabel(monthValue) {
+    var parts = monthValue.split("-");
+    var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1);
+    return d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  }
+
+  calcBillBtn.addEventListener("click", function () {
+    var monthValue = billMonthEl.value;
+    if (!monthValue) {
+      showToast("Pick a month first");
+      return;
+    }
+    var price = parseFloat(billPriceEl.value);
+    if (isNaN(price) || price < 0) {
+      showToast("Enter a valid price per liter");
+      billResultEl.innerHTML = "";
+      return;
+    }
+
+    var entries = loadEntries().filter(function (e) {
+      return e.date.slice(0, 7) === monthValue;
+    });
+    var totalLiters = entries.reduce(function (sum, e) { return sum + e.liters; }, 0);
+    var totalAmount = totalLiters * price;
+
+    billResultEl.innerHTML =
+      '<div class="bill-summary">' +
+      '<div class="bill-row"><span>Month</span><span>' + monthLabel(monthValue) + '</span></div>' +
+      '<div class="bill-row"><span>Total Liters</span><span>' + formatLiters(totalLiters) + '</span></div>' +
+      '<div class="bill-row"><span>Price per Liter</span><span>₹' + price.toFixed(2) + '</span></div>' +
+      '<div class="bill-row total"><span>Total Amount</span><span>₹' + totalAmount.toFixed(2) + '</span></div>' +
+      '</div>';
+  });
+
+  // ---------- init ----------
+
+  initBillMonth();
+  renderHome();
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").catch(function () {});
+    });
+  }
+})();

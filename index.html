@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Milk Journal</title>
+<meta name="theme-color" content="#3f6fb4">
+<meta name="description" content="Track daily milk purchases and calculate your monthly bill.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<main>
+
+  <!-- HOME VIEW -->
+  <section id="view-home" class="view active">
+    <header class="home-header">
+      <div class="date-label" id="date-label">--</div>
+    </header>
+
+    <div class="today-total" id="today-total"></div>
+
+    <div class="button-stack">
+      <button type="button" class="qty-btn qty-btn--full" data-liters="1" data-label="1 Liter">
+        <span class="qty-num">1</span>
+        <span class="qty-unit">Liter</span>
+      </button>
+      <button type="button" class="qty-btn qty-btn--half" data-liters="0.5" data-label="Half Liter">
+        <span class="qty-num">½</span>
+        <span class="qty-unit">Liter</span>
+      </button>
+    </div>
+
+    <div class="today-entries" id="today-entries"></div>
+  </section>
+
+  <!-- HISTORY VIEW -->
+  <section id="view-history" class="view">
+    <h1 class="view-title">History</h1>
+    <div id="history-list" class="history-list"></div>
+  </section>
+
+  <!-- BILL VIEW -->
+  <section id="view-bill" class="view">
+    <h1 class="view-title">Monthly Bill</h1>
+
+    <label class="field-label" for="bill-month">Month</label>
+    <input type="month" id="bill-month" class="field-input">
+
+    <label class="field-label" for="bill-price">Price per Liter (₹)</label>
+    <input type="number" id="bill-price" class="field-input" inputmode="decimal" step="0.01" min="0" placeholder="e.g. 60">
+
+    <button type="button" id="calc-bill-btn" class="primary-btn">Calculate This Month's Bill</button>
+
+    <div id="bill-result" class="bill-result"></div>
+  </section>
+
+</main>
+
+<nav class="tabbar">
+  <button type="button" class="tab-btn active" data-view="home">
+    <span class="tab-icon">🏠</span><span>Home</span>
+  </button>
+  <button type="button" class="tab-btn" data-view="history">
+    <span class="tab-icon">📋</span><span>History</span>
+  </button>
+  <button type="button" class="tab-btn" data-view="bill">
+    <span class="tab-icon">🧾</span><span>Bill</span>
+  </button>
+</nav>
+
+<div id="toast" class="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

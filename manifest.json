@@ -1,0 +1,19 @@
+{
+  "name": "Milk Journal",
+  "short_name": "Milk Journal",
+  "description": "Track daily milk purchases and calculate your monthly bill.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#3f6fb4",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
