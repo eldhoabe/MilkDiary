@@ -61,6 +61,66 @@ main {
   color: var(--color-primary-dark);
 }
 
+.link-btn {
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 8px 6px;
+  margin-top: 4px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.date-picker-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.date-picker-panel .field-label {
+  margin-top: 0;
+}
+
+.period-pills {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0 16px;
+}
+
+.period-pill {
+  flex: 1;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding: 10px 4px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.period-pill.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.date-picker-panel .link-btn {
+  display: block;
+  margin: 0 auto;
+}
+
+.view-hint {
+  margin: -10px 0 18px;
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+}
+
 .today-total {
   text-align: center;
   color: var(--color-text-muted);
@@ -209,6 +269,9 @@ main {
   display: flex;
   gap: 10px;
   align-items: baseline;
+  flex: 1;
+  cursor: pointer;
+  padding: 4px 0;
 }
 
 .history-entry-period {

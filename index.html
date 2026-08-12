@@ -19,7 +19,21 @@
   <section id="view-home" class="view active">
     <header class="home-header">
       <div class="date-label" id="date-label">--</div>
+      <button type="button" id="toggle-date-picker" class="link-btn">Log a past date</button>
     </header>
+
+    <div class="date-picker-panel" id="date-picker-panel" hidden>
+      <label class="field-label" for="date-input">Date</label>
+      <input type="date" id="date-input" class="field-input">
+
+      <div class="period-pills" id="period-pills">
+        <button type="button" class="period-pill" data-period="Morning">Morning</button>
+        <button type="button" class="period-pill" data-period="Afternoon">Afternoon</button>
+        <button type="button" class="period-pill" data-period="Evening">Evening</button>
+      </div>
+
+      <button type="button" id="back-to-today" class="link-btn">↩ Back to today</button>
+    </div>
 
     <div class="today-total" id="today-total"></div>
 
@@ -40,6 +54,7 @@
   <!-- HISTORY VIEW -->
   <section id="view-history" class="view">
     <h1 class="view-title">History</h1>
+    <p class="view-hint">Tap an entry from the last 30 days to edit it, or ✕ to delete it.</p>
     <div id="history-list" class="history-list"></div>
   </section>
 

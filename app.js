@@ -65,6 +65,14 @@
     return "Evening";
   }
 
+  var EDIT_WINDOW_DAYS = 30;
+
+  function oldestEditableDateKey() {
+    var d = new Date();
+    d.setDate(d.getDate() - EDIT_WINDOW_DAYS);
+    return dateKey(d);
+  }
+
   function formatLiters(n) {
     var rounded = Math.round(n * 100) / 100;
     return (rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(2).replace(/0$/, "")) + "L";
@@ -116,24 +124,69 @@
   var todayTotalEl = document.getElementById("today-total");
   var todayEntriesEl = document.getElementById("today-entries");
   var qtyButtons = document.querySelectorAll(".qty-btn");
+  var toggleDatePickerBtn = document.getElementById("toggle-date-picker");
+  var datePickerPanel = document.getElementById("date-picker-panel");
+  var dateInputEl = document.getElementById("date-input");
+  var periodPillsEl = document.getElementById("period-pills");
+  var backToTodayBtn = document.getElementById("back-to-today");
+
+  // When manual is false, the active date/period always track "right now".
+  var manual = false;
+  var manualDate = null;
+  var manualPeriod = null;
+
+  function getActiveDate() {
+    return manual ? manualDate : dateKey(new Date());
+  }
+
+  function getActivePeriod() {
+    return manual ? manualPeriod : currentPeriod(new Date());
+  }
+
+  function enterManualMode(dateVal, periodVal) {
+    manual = true;
+    manualDate = dateVal;
+    manualPeriod = periodVal;
+    renderHome();
+  }
+
+  function exitManualMode() {
+    manual = false;
+    manualDate = null;
+    manualPeriod = null;
+    renderHome();
+  }
 
   function renderHome() {
-    var now = new Date();
-    var today = dateKey(now);
-    var period = currentPeriod(now);
+    var today = dateKey(new Date());
+    var activeDate = getActiveDate();
+    var activePeriod = getActivePeriod();
 
-    dateLabelEl.textContent = displayDate(today) + " - " + period;
+    dateLabelEl.textContent = displayDate(activeDate) + " - " + activePeriod;
+
+    toggleDatePickerBtn.hidden = manual;
+    datePickerPanel.hidden = !manual;
+
+    if (manual) {
+      dateInputEl.value = activeDate;
+      dateInputEl.max = today;
+      dateInputEl.min = oldestEditableDateKey();
+      periodPillsEl.querySelectorAll(".period-pill").forEach(function (pill) {
+        pill.classList.toggle("active", pill.dataset.period === activePeriod);
+      });
+    }
 
     var entries = loadEntries().filter(function (e) {
-      return e.date === today;
+      return e.date === activeDate;
     });
 
     var total = entries.reduce(function (sum, e) {
       return sum + e.liters;
     }, 0);
 
+    var totalLabel = activeDate === today ? "Today's total" : "Total for this date";
     todayTotalEl.innerHTML = total > 0
-      ? "Today's total: <strong>" + formatLiters(total) + "</strong>"
+      ? totalLabel + ": <strong>" + formatLiters(total) + "</strong>"
       : "";
 
     var byPeriod = {};
@@ -154,14 +207,44 @@
     btn.addEventListener("click", function () {
       var liters = parseFloat(btn.dataset.liters);
       var label = btn.dataset.label;
-      var now = new Date();
-      var today = dateKey(now);
-      var period = currentPeriod(now);
+      var activeDate = getActiveDate();
+      var activePeriod = getActivePeriod();
+      var today = dateKey(new Date());
 
-      upsertEntry(today, period, liters);
-      showToast("Saved: " + label.replace("Liter", "L").replace(" ", "") + " - " + period);
+      upsertEntry(activeDate, activePeriod, liters);
+
+      var shortLabel = label.replace("Liter", "L").replace(" ", "");
+      var suffix = activeDate === today ? "" : " (" + displayDate(activeDate) + ")";
+      showToast("Saved: " + shortLabel + " - " + activePeriod + suffix);
+
       renderHome();
     });
+  });
+
+  toggleDatePickerBtn.addEventListener("click", function () {
+    enterManualMode(dateKey(new Date()), currentPeriod(new Date()));
+  });
+
+  backToTodayBtn.addEventListener("click", function () {
+    exitManualMode();
+  });
+
+  dateInputEl.addEventListener("change", function () {
+    if (!dateInputEl.value) return;
+    var today = dateKey(new Date());
+    var oldest = oldestEditableDateKey();
+    var picked = dateInputEl.value;
+    if (picked > today) picked = today;
+    if (picked < oldest) picked = oldest;
+    manualDate = picked;
+    renderHome();
+  });
+
+  periodPillsEl.addEventListener("click", function (evt) {
+    var pill = evt.target.closest(".period-pill");
+    if (!pill) return;
+    manualPeriod = pill.dataset.period;
+    renderHome();
   });
 
   // ---------- history view ----------
@@ -194,7 +277,8 @@
 
       var rows = dayEntries.map(function (e) {
         return '<div class="history-entry">' +
-          '<div class="history-entry-info">' +
+          '<div class="history-entry-info" data-date="' + e.date + '" data-period="' + e.period +
+          '" role="button" tabindex="0" aria-label="Edit ' + e.period + ' entry for ' + displayDate(e.date) + '">' +
           '<span class="history-entry-period">' + e.period + '</span>' +
           '<span class="history-entry-liters">' + formatLiters(e.liters) + '</span>' +
           '</div>' +
@@ -211,10 +295,22 @@
   }
 
   historyListEl.addEventListener("click", function (evt) {
-    var btn = evt.target.closest(".delete-btn");
-    if (!btn) return;
-    deleteEntry(btn.dataset.date, btn.dataset.period);
-    renderHistory();
+    var deleteBtn = evt.target.closest(".delete-btn");
+    if (deleteBtn) {
+      deleteEntry(deleteBtn.dataset.date, deleteBtn.dataset.period);
+      renderHistory();
+      return;
+    }
+
+    var entryInfo = evt.target.closest(".history-entry-info");
+    if (entryInfo) {
+      if (entryInfo.dataset.date < oldestEditableDateKey()) {
+        showToast("Entries older than 30 days can't be edited");
+        return;
+      }
+      enterManualMode(entryInfo.dataset.date, entryInfo.dataset.period);
+      showView("home");
+    }
   });
 
   // ---------- bill view ----------
