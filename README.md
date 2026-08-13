@@ -1,8 +1,17 @@
 # Milk Journal
 
-A tiny, mobile-friendly app for logging daily milk purchases and working out
-what you owe at the end of the month. No sign-up, no server — open it, tap
-a button, done.
+Every month it's the same fight: the milkman says one number, your fuzzy
+memory says another, and somewhere there's a scrap of paper with tally
+marks that's either lost or wrong. Milk Journal replaces that scrap of
+paper. Tap how much milk showed up today, and at the end of the month it
+adds it all up and tells you exactly what you owe — no guessing, no
+arguing, no spreadsheet.
+
+It's a tiny, mobile-friendly app for logging daily milk purchases and
+working out what you owe at the end of the month. Open it, tap a button,
+done.
+
+**100% free — no signup, no ads, no subscription, open source.**
 
 **Try it now: [eldhoabe.github.io/MilkDiary](https://eldhoabe.github.io/MilkDiary/)**
 
@@ -63,3 +72,7 @@ preview at a phone width).
 - Single-page app: `index.html`, `style.css`, `app.js`
 - Data persistence via `localStorage`
 - `manifest.json` + `sw.js` for basic PWA / "Add to Home Screen" support
+
+## License
+
+MIT — see [LICENSE](LICENSE). Free to use, free to read, free to fork.
