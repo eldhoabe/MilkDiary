@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Milk Journal</title>
-<meta name="theme-color" content="#3f6fb4">
+<meta name="theme-color" content="#2f5aa8">
 <meta name="description" content="Track daily milk purchases and calculate your monthly bill.">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -13,14 +13,23 @@
 </head>
 <body>
 
+<header class="app-header">
+  <img class="app-header-icon" src="icon.svg" width="36" height="36" alt="">
+  <span class="app-header-title">Milk Journal</span>
+</header>
+
 <main>
 
   <!-- HOME VIEW -->
   <section id="view-home" class="view active">
-    <header class="home-header">
-      <div class="date-label" id="date-label">--</div>
-      <button type="button" id="toggle-date-picker" class="link-btn">Log a past date</button>
-    </header>
+    <div class="today-card" id="today-card">
+      <div class="today-card-label" id="today-card-label">TODAY</div>
+      <div class="today-card-date" id="today-card-date">--</div>
+      <span class="today-card-period" id="today-card-period">Morning</span>
+      <p class="today-card-question">How much milk did the milkman drop off?</p>
+    </div>
+
+    <button type="button" id="toggle-date-picker" class="link-btn centered">Log a past date</button>
 
     <div class="date-picker-panel" id="date-picker-panel" hidden>
       <label class="field-label" for="date-input">Date</label>
@@ -35,20 +44,38 @@
       <button type="button" id="back-to-today" class="link-btn">↩ Back to today</button>
     </div>
 
-    <div class="today-total" id="today-total"></div>
+    <p class="log-hint" id="log-hint">Tap to log today's milk</p>
 
     <div class="button-stack">
       <button type="button" class="qty-btn qty-btn--full" data-liters="1" data-label="1 Liter">
-        <span class="qty-num">1</span>
-        <span class="qty-unit">Liter</span>
+        <span class="qty-btn-text">
+          <span class="qty-btn-title">1 Liter</span>
+          <span class="qty-btn-subtitle">Full bottle today</span>
+        </span>
+        <span class="qty-btn-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M9 2h6l1.6 5-1.6 2.6V20a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V9.6L7.4 7z" fill="currentColor"/><rect x="9" y="13.5" width="6" height="2.2" fill="currentColor" opacity=".45"/></svg>
+        </span>
       </button>
       <button type="button" class="qty-btn qty-btn--half" data-liters="0.5" data-label="Half Liter">
-        <span class="qty-num">½</span>
-        <span class="qty-unit">Liter</span>
+        <span class="qty-btn-text">
+          <span class="qty-btn-title">Half Liter</span>
+          <span class="qty-btn-subtitle">Just the half today</span>
+        </span>
+        <span class="qty-btn-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M9 2h6l1.6 5-1.6 2.6V20a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V9.6L7.4 7z" fill="currentColor"/><rect x="9" y="13.5" width="6" height="2.2" fill="currentColor" opacity=".45"/></svg>
+        </span>
       </button>
     </div>
 
     <div class="today-entries" id="today-entries"></div>
+
+    <button type="button" class="month-summary-card" id="month-summary-card">
+      <span class="month-summary-text">
+        <span class="month-summary-title" id="month-summary-title">This month total: 0 L</span>
+        <span class="month-summary-subtitle">Tap to calculate what you owe</span>
+      </span>
+      <span class="month-summary-chevron" aria-hidden="true">›</span>
+    </button>
   </section>
 
   <!-- HISTORY VIEW -->
@@ -88,6 +115,18 @@
 </nav>
 
 <div id="toast" class="toast"></div>
+
+<div class="install-overlay" id="install-overlay" hidden>
+  <div class="install-sheet" role="dialog" aria-modal="true" aria-labelledby="install-sheet-title">
+    <span class="install-sheet-icon" aria-hidden="true">
+      <img src="icon.svg" width="44" height="44" alt="">
+    </span>
+    <h2 class="install-sheet-title" id="install-sheet-title">Add Milk Journal to your Home Screen</h2>
+    <p class="install-sheet-body" id="install-sheet-body">Get one-tap access every morning, right from your home screen.</p>
+    <button type="button" class="install-sheet-cta" id="install-sheet-add">Add to Home Screen</button>
+    <button type="button" class="install-sheet-dismiss" id="install-sheet-dismiss">Not now</button>
+  </div>
+</div>
 
 <script src="app.js"></script>
 <!-- 100% privacy-first analytics -->

@@ -78,6 +78,11 @@
     return (rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(2).replace(/0$/, "")) + "L";
   }
 
+  function formatLitersSpaced(n) {
+    var rounded = Math.round(n * 100) / 100;
+    return rounded.toFixed(1) + " L";
+  }
+
   // ---------- toast ----------
 
   var toastEl = document.getElementById("toast");
@@ -120,9 +125,13 @@
 
   // ---------- home view ----------
 
-  var dateLabelEl = document.getElementById("date-label");
-  var todayTotalEl = document.getElementById("today-total");
+  var todayCardLabelEl = document.getElementById("today-card-label");
+  var todayCardDateEl = document.getElementById("today-card-date");
+  var todayCardPeriodEl = document.getElementById("today-card-period");
+  var logHintEl = document.getElementById("log-hint");
   var todayEntriesEl = document.getElementById("today-entries");
+  var monthSummaryTitleEl = document.getElementById("month-summary-title");
+  var monthSummaryCardEl = document.getElementById("month-summary-card");
   var qtyButtons = document.querySelectorAll(".qty-btn");
   var toggleDatePickerBtn = document.getElementById("toggle-date-picker");
   var datePickerPanel = document.getElementById("date-picker-panel");
@@ -158,11 +167,15 @@
   }
 
   function renderHome() {
-    var today = dateKey(new Date());
+    var now = new Date();
+    var today = dateKey(now);
     var activeDate = getActiveDate();
     var activePeriod = getActivePeriod();
 
-    dateLabelEl.textContent = displayDate(activeDate) + " - " + activePeriod;
+    todayCardLabelEl.textContent = manual ? "EDITING PAST DATE" : "TODAY";
+    todayCardDateEl.textContent = displayDate(activeDate);
+    todayCardPeriodEl.textContent = activePeriod;
+    logHintEl.textContent = manual ? "Tap to log this date's milk" : "Tap to log today's milk";
 
     toggleDatePickerBtn.hidden = manual;
     datePickerPanel.hidden = !manual;
@@ -180,27 +193,30 @@
       return e.date === activeDate;
     });
 
-    var total = entries.reduce(function (sum, e) {
-      return sum + e.liters;
-    }, 0);
-
-    var totalLabel = activeDate === today ? "Today's total" : "Total for this date";
-    todayTotalEl.innerHTML = total > 0
-      ? totalLabel + ": <strong>" + formatLiters(total) + "</strong>"
-      : "";
-
     var byPeriod = {};
     entries.forEach(function (e) {
       byPeriod[e.period] = e.liters;
     });
 
+    var currentPeriodNow = currentPeriod(now);
     todayEntriesEl.innerHTML = PERIOD_ORDER
       .filter(function (p) { return byPeriod[p] !== undefined; })
       .map(function (p) {
-        return '<div class="today-entry-row"><span class="period">' + p +
-          '</span><span class="liters">' + formatLiters(byPeriod[p]) + "</span></div>";
+        var label = activeDate === today && p === currentPeriodNow
+          ? "Saved for this " + p.toLowerCase()
+          : "Saved for " + p;
+        return '<div class="entry-status-row"><span class="entry-status-dot"></span>' +
+          '<span class="entry-status-label">' + label + '</span>' +
+          '<span class="entry-status-value">' + formatLitersSpaced(byPeriod[p]) + "</span></div>";
       })
       .join("");
+
+    var monthKey = today.slice(0, 7);
+    var monthTotal = loadEntries()
+      .filter(function (e) { return e.date.slice(0, 7) === monthKey; })
+      .reduce(function (sum, e) { return sum + e.liters; }, 0);
+    var monthName = now.toLocaleDateString(undefined, { month: "long" });
+    monthSummaryTitleEl.textContent = monthName + " total: " + formatLitersSpaced(monthTotal);
   }
 
   qtyButtons.forEach(function (btn) {
@@ -219,6 +235,10 @@
 
       renderHome();
     });
+  });
+
+  monthSummaryCardEl.addEventListener("click", function () {
+    showView("bill");
   });
 
   toggleDatePickerBtn.addEventListener("click", function () {
@@ -358,6 +378,73 @@
       '<div class="bill-row total"><span>Total Amount</span><span>₹' + totalAmount.toFixed(2) + '</span></div>' +
       '</div>';
   });
+
+  // ---------- add to home screen prompt ----------
+
+  var INSTALL_PROMPT_KEY = "milkJournal.installPromptShown";
+  var deferredInstallPrompt = null;
+
+  var installOverlayEl = document.getElementById("install-overlay");
+  var installBodyEl = document.getElementById("install-sheet-body");
+  var installAddBtn = document.getElementById("install-sheet-add");
+  var installDismissBtn = document.getElementById("install-sheet-dismiss");
+
+  window.addEventListener("beforeinstallprompt", function (evt) {
+    evt.preventDefault();
+    deferredInstallPrompt = evt;
+  });
+
+  function isStandalone() {
+    return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  }
+
+  function isIOS() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  }
+
+  function showInstallSheet(iosInstructions) {
+    if (iosInstructions) {
+      installBodyEl.textContent = 'Tap the Share icon, then "Add to Home Screen" to install Milk Journal.';
+      installAddBtn.hidden = true;
+    } else {
+      installBodyEl.textContent = "Get one-tap access every morning, right from your home screen.";
+      installAddBtn.hidden = false;
+    }
+    installOverlayEl.hidden = false;
+  }
+
+  function hideInstallSheet() {
+    installOverlayEl.hidden = true;
+  }
+
+  function maybeShowInstallPrompt() {
+    if (localStorage.getItem(INSTALL_PROMPT_KEY)) return;
+    localStorage.setItem(INSTALL_PROMPT_KEY, "1");
+
+    if (isStandalone()) return;
+
+    if (deferredInstallPrompt) {
+      showInstallSheet(false);
+    } else if (isIOS()) {
+      showInstallSheet(true);
+    }
+  }
+
+  document.addEventListener("click", function (evt) {
+    if (evt.target.closest("button")) maybeShowInstallPrompt();
+  });
+
+  installAddBtn.addEventListener("click", function () {
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.then(function () {
+        deferredInstallPrompt = null;
+      });
+    }
+    hideInstallSheet();
+  });
+
+  installDismissBtn.addEventListener("click", hideInstallSheet);
 
   // ---------- init ----------
 
