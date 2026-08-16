@@ -1,4 +1,4 @@
-var CACHE_NAME = "milk-journal-v1";
+var CACHE_NAME = "milk-journal-v2";
 var ASSETS = [
   "./",
   "./index.html",
