@@ -1,5 +1,7 @@
 # Milk Journal
 
+![Milk Journal](docs/screenshots/social-preview.png)
+
 Every month it's the same fight: the milkman says one number, your fuzzy
 memory says another, and somewhere there's a scrap of paper with tally
 marks that's either lost or wrong. Milk Journal replaces that scrap of
