@@ -277,6 +277,51 @@ main {
   color: var(--color-primary);
 }
 
+.qty-btn--custom {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px dashed var(--color-border);
+}
+
+.qty-btn--custom .qty-btn-subtitle {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+.qty-btn--custom .qty-btn-icon {
+  background: #fdf1de;
+  color: var(--color-amber-dark);
+}
+
+.custom-input-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 16px;
+  margin: -8px 0 20px;
+}
+
+.custom-input-panel .field-label {
+  margin-top: 0;
+}
+
+.custom-input-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.custom-input-actions .primary-btn {
+  margin-top: 0;
+  flex: 1;
+}
+
+.custom-input-actions .link-btn {
+  margin: 0;
+  white-space: nowrap;
+}
+
 .today-entries {
   display: flex;
   flex-direction: column;
