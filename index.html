@@ -95,6 +95,26 @@
           <svg viewBox="0 0 24 24"><path d="M9 2h6l1.6 5-1.6 2.6V20a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V9.6L7.4 7z" fill="currentColor"/><rect x="9" y="13.5" width="6" height="2.2" fill="currentColor" opacity=".45"/></svg>
         </span>
       </button>
+      <button type="button" class="qty-btn qty-btn--custom" id="qty-btn-custom" data-label="" hidden>
+        <span class="qty-btn-text">
+          <span class="qty-btn-title" id="qty-btn-custom-title">0 L</span>
+          <span class="qty-btn-subtitle">Your usual custom amount</span>
+        </span>
+        <span class="qty-btn-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M9 2h6l1.6 5-1.6 2.6V20a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V9.6L7.4 7z" fill="currentColor"/><rect x="9" y="13.5" width="6" height="2.2" fill="currentColor" opacity=".45"/></svg>
+        </span>
+      </button>
+    </div>
+
+    <button type="button" id="toggle-custom-input" class="link-btn centered">+ Custom Liter</button>
+
+    <div class="custom-input-panel" id="custom-input-panel" hidden>
+      <label class="field-label" for="custom-liters-input">Amount in liters (e.g. 0.75 for 750ml)</label>
+      <input type="number" id="custom-liters-input" class="field-input" inputmode="decimal" step="0.01" min="0.01" placeholder="e.g. 0.75">
+      <div class="custom-input-actions">
+        <button type="button" id="save-custom-btn" class="primary-btn">Save &amp; Log</button>
+        <button type="button" id="cancel-custom-btn" class="link-btn centered">Cancel</button>
+      </div>
     </div>
 
     <div class="today-entries" id="today-entries"></div>

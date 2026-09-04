@@ -83,6 +83,20 @@
     return rounded.toFixed(1) + " L";
   }
 
+  // ---------- remembered custom quantity ----------
+
+  var CUSTOM_LITERS_KEY = "milkJournal.customLiters";
+
+  function getSavedCustomLiters() {
+    var raw = localStorage.getItem(CUSTOM_LITERS_KEY);
+    var val = raw ? parseFloat(raw) : NaN;
+    return !isNaN(val) && val > 0 ? val : null;
+  }
+
+  function saveCustomLiters(val) {
+    localStorage.setItem(CUSTOM_LITERS_KEY, String(val));
+  }
+
   // ---------- toast ----------
 
   var toastEl = document.getElementById("toast");
@@ -138,6 +152,13 @@
   var dateInputEl = document.getElementById("date-input");
   var periodPillsEl = document.getElementById("period-pills");
   var backToTodayBtn = document.getElementById("back-to-today");
+  var qtyBtnCustomEl = document.getElementById("qty-btn-custom");
+  var qtyBtnCustomTitleEl = document.getElementById("qty-btn-custom-title");
+  var toggleCustomInputBtn = document.getElementById("toggle-custom-input");
+  var customInputPanel = document.getElementById("custom-input-panel");
+  var customLitersInputEl = document.getElementById("custom-liters-input");
+  var saveCustomBtn = document.getElementById("save-custom-btn");
+  var cancelCustomBtn = document.getElementById("cancel-custom-btn");
 
   // When manual is false, the active date/period always track "right now".
   var manual = false;
@@ -179,6 +200,16 @@
 
     toggleDatePickerBtn.hidden = manual;
     datePickerPanel.hidden = !manual;
+
+    var customLiters = getSavedCustomLiters();
+    if (customLiters) {
+      qtyBtnCustomEl.hidden = false;
+      qtyBtnCustomEl.dataset.liters = String(customLiters);
+      qtyBtnCustomEl.dataset.label = customLiters + " Liter";
+      qtyBtnCustomTitleEl.textContent = formatLiters(customLiters).replace(/L$/, " L");
+    } else {
+      qtyBtnCustomEl.hidden = true;
+    }
 
     if (manual) {
       dateInputEl.value = activeDate;
@@ -239,6 +270,43 @@
 
   monthSummaryCardEl.addEventListener("click", function () {
     showView("bill");
+  });
+
+  function openCustomInput() {
+    customInputPanel.hidden = false;
+    toggleCustomInputBtn.hidden = true;
+    customLitersInputEl.value = "";
+    customLitersInputEl.focus();
+  }
+
+  function closeCustomInput() {
+    customInputPanel.hidden = true;
+    toggleCustomInputBtn.hidden = false;
+  }
+
+  toggleCustomInputBtn.addEventListener("click", openCustomInput);
+  cancelCustomBtn.addEventListener("click", closeCustomInput);
+
+  saveCustomBtn.addEventListener("click", function () {
+    var val = parseFloat(customLitersInputEl.value);
+    if (isNaN(val) || val <= 0) {
+      showToast("Enter a valid amount in liters");
+      return;
+    }
+    val = Math.round(val * 100) / 100;
+
+    var activeDate = getActiveDate();
+    var activePeriod = getActivePeriod();
+    var today = dateKey(new Date());
+
+    upsertEntry(activeDate, activePeriod, val);
+    saveCustomLiters(val);
+
+    var suffix = activeDate === today ? "" : " (" + displayDate(activeDate) + ")";
+    showToast("Saved: " + formatLiters(val) + " - " + activePeriod + suffix);
+
+    closeCustomInput();
+    renderHome();
   });
 
   toggleDatePickerBtn.addEventListener("click", function () {
