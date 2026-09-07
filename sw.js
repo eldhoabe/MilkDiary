@@ -1,4 +1,4 @@
-var CACHE_NAME = "milk-journal-v2";
+var CACHE_NAME = "milk-journal-v3";
 var ASSETS = [
   "./",
   "./index.html",
@@ -29,19 +29,20 @@ self.addEventListener("activate", function (event) {
   self.clients.claim();
 });
 
+// Network-first: always try the network so a new deployment is picked up as
+// soon as the device is online, instead of serving whatever got cached on
+// the very first visit forever. Cache is only a fallback for offline use.
 self.addEventListener("fetch", function (event) {
   if (event.request.method !== "GET") return;
   event.respondWith(
-    caches.match(event.request).then(function (cached) {
-      return cached || fetch(event.request).then(function (response) {
-        var copy = response.clone();
-        caches.open(CACHE_NAME).then(function (cache) {
-          cache.put(event.request, copy);
-        });
-        return response;
-      }).catch(function () {
-        return cached;
+    fetch(event.request).then(function (response) {
+      var copy = response.clone();
+      caches.open(CACHE_NAME).then(function (cache) {
+        cache.put(event.request, copy);
       });
+      return response;
+    }).catch(function () {
+      return caches.match(event.request);
     })
   );
 });
