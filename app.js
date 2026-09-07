@@ -523,5 +523,15 @@
     window.addEventListener("load", function () {
       navigator.serviceWorker.register("sw.js").catch(function () {});
     });
+
+    // When a new service worker takes over (a fresh deployment activated),
+    // reload once so an already-open tab or home-screen app picks up the
+    // new page instead of continuing to run the old one from memory.
+    var refreshedForUpdate = false;
+    navigator.serviceWorker.addEventListener("controllerchange", function () {
+      if (refreshedForUpdate) return;
+      refreshedForUpdate = true;
+      window.location.reload();
+    });
   }
 })();
