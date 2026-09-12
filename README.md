@@ -15,7 +15,7 @@ done.
 
 **100% free — no signup, no ads, no subscription, open source.**
 
-**Try it now: [MilkJournal](https://milkjournal.in/)**
+**Try it now: [MilkJournal.in](https://milkjournal.in/)**
 
 | | | |
 |---|---|---|
@@ -42,7 +42,7 @@ done.
 
 ## Getting started
 
-1. Open **[eldhoabe.github.io/MilkDiary](https://milkjournal.in/)**
+1. Open **[milkjournal.in](https://milkjournal.in/)**
    on your phone.
 2. Add it to your home screen so it opens like a regular app:
    - **iPhone (Safari):** tap the Share icon → **Add to Home Screen**
