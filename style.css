@@ -726,6 +726,18 @@ main {
   text-decoration: underline;
 }
 
+.analytics-badge {
+  display: block;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.analytics-badge img {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+}
+
 @media (min-width: 480px) {
   .app-header {
     padding-top: 28px;
